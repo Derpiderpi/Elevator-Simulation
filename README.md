@@ -5,15 +5,23 @@ This project simulates the situation in a ten-story building with three elevator
 
 ## Build & Run
 
-The project is built with Maven (requires Java 21+). Place an `ElevatorConfig.txt` (see Input File below) in the directory you run these commands from.
+The project is built with Maven and requires a JDK 21+ install on your `PATH`. Place an `ElevatorConfig.txt` (see Input File below) in the directory you run these commands from.
+
+A Maven Wrapper is included, so you don't need Maven installed separately — use `./mvnw` (macOS/Linux) or `mvnw.cmd` (Windows) in place of `mvn` below. If you already have Maven installed, the plain `mvn` commands work the same way.
 
 - Console mode (text trace only, same behavior as before the GUI was added):
   ```
-  mvn exec:java -Dexec.mainClass=com.elevatorsim.Simulator
+  ./mvnw exec:java -Dexec.mainClass=com.elevatorsim.Simulator
+  ```
+  ```
+  mvnw.cmd exec:java -Dexec.mainClass=com.elevatorsim.Simulator
   ```
 - GUI mode (animated building view):
   ```
-  mvn javafx:run
+  ./mvnw javafx:run
+  ```
+  ```
+  mvnw.cmd javafx:run
   ```
 
 ## Input File
