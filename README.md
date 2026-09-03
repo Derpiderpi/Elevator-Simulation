@@ -3,6 +3,26 @@
 ## Introduction
 This project simulates the situation in a ten-story building with three elevators. The project is written in Java using knowledge focus on Multithreading.
 
+## Project Layout
+The project is built with Maven. Source lives under `src/main/java/com/elevatorsim`:
+- `com.elevatorsim.model` — the simulation itself (`BuildingFloor`, `BuildingManager`, `Elevator`, `ElevatorEvent`, `ElevatorSimulation`, `PassengerArrival`, `SimClock`), unchanged in behavior from the original flat-file version.
+- `com.elevatorsim` — `Simulator`, the original console-only entry point.
+- `com.elevatorsim.gui` — a JavaFX visualization (`ElevatorApp` and friends) that runs the simulation in the background and animates the building, elevators, and passengers as it progresses.
+
+## Running
+
+**JavaFX animation** (floors, elevators, and passengers rendered and animated live):
+```
+mvn clean javafx:run
+```
+Click "Start Simulation" in the window that opens.
+
+**Original console-only mode** (prints the same log lines as before, straight to stdout):
+```
+mvn -q compile exec:java
+```
+
+Both modes read `ElevatorConfig.txt` from the current working directory (a sample is included at the project root).
 
 ## Input File
 Setting should be provided seperately in a text file named "ElevatorConfig.txt", in the following format:

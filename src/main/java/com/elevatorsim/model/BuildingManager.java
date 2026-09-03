@@ -1,3 +1,5 @@
+package com.elevatorsim.model;
+
 public class BuildingManager {
     private BuildingFloor[] floors;
     private boolean goUp;

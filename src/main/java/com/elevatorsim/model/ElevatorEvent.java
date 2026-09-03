@@ -1,3 +1,5 @@
+package com.elevatorsim.model;
+
 public class ElevatorEvent {
     private int destination;
     private int expectedArrival;

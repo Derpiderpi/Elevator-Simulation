@@ -1,3 +1,5 @@
+package com.elevatorsim.model;
+
 public class SimClock {
     private static int currentTime;
     

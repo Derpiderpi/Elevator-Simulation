@@ -1,3 +1,5 @@
+package com.elevatorsim.model;
+
 import java.util.ArrayList;
 
 public class Elevator implements Runnable {
@@ -98,6 +100,11 @@ public class Elevator implements Runnable {
     // Get the elevator ID
     public int getElevatorID() {
         return elevatorID;
+    }
+
+    // Get the current floor
+    public int getCurrentFloor() {
+        return currentfloor;
     }
     
     // Get total loaded passengers

@@ -1,3 +1,5 @@
+package com.elevatorsim.model;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -91,8 +93,18 @@ public class ElevatorSimulation {
     }
     
     
+    // Get the building manager (floor/passenger request state)
+    public BuildingManager getManager() {
+        return manager;
+    }
+
+    // Get the array of elevators
+    public Elevator[] getElevators() {
+        return elevators;
+    }
+
     // Prints out the final state of the elevators and building floors
-    public void printBuildingState() {   
+    public void printBuildingState() {
         System.out.println();
         for (int floor=0; floor<10; floor++) {
             System.out.println("Floor# | Total Requests  | Total Exits | Current Request | Current Approaching");
