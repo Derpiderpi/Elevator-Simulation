@@ -1,5 +1,7 @@
+package com.elevatorsim;
+
 public class SimClock {
-    private static int currentTime;
+    private static volatile int currentTime;
     
     //constructor
     public SimClock() {

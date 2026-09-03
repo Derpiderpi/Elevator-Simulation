@@ -1,3 +1,5 @@
+package com.elevatorsim;
+
 public class BuildingFloor {
     private int[] totalDestinationRequests;
     private int[] arrivedPassengers;

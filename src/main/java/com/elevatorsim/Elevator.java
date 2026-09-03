@@ -1,15 +1,19 @@
+package com.elevatorsim;
+
 import java.util.ArrayList;
 
 public class Elevator implements Runnable {
     private int elevatorID;
-    private int currentfloor;
-    private int numPassengers;
+    private volatile int currentfloor;
+    private volatile int numPassengers;
     private int totalLoadedPassengers;
     private int totalUnloadedPassengers;
     ArrayList<ElevatorEvent> moveQueue;
     private BuildingManager manager;
     private int[] passengerDestinations;
     private int[] unloadedPassengers;
+    // Read-only view of moveQueue's head for the GUI to poll cross-thread; reassigned wherever moveQueue's head changes
+    private volatile ElevatorEvent activeLeg;
     
     // Constructor
     public Elevator(int elevatorID, BuildingManager manager) {
@@ -31,7 +35,8 @@ public class Elevator implements Runnable {
             if (numPassengers == 0 && moveQueue.isEmpty()) { // detecting
                 int dest = manager.detectPassengers(elevatorID);
                 if (dest != -1) {
-                    moveQueue.add(new ElevatorEvent(dest, SimClock.getTime() + Math.abs(currentfloor-dest)*3 + 5));
+                    moveQueue.add(new ElevatorEvent(currentfloor, dest, SimClock.getTime(), SimClock.getTime() + Math.abs(currentfloor-dest)*3 + 5));
+                    activeLeg = moveQueue.get(0);
                     System.out.println(" Time: " + SimClock.getTime() + " Elevator " + elevatorID + " is heading to floor " + 
                            moveQueue.get(0).getDestination() + " to pick up passengers.");
                 }
@@ -45,7 +50,7 @@ public class Elevator implements Runnable {
                         for (int dest=0; dest<passengerDestinations.length; dest++) { // Going up
                             if (passengerDestinations[dest] > 0) {
                                 incPassengers(passengerDestinations[dest]);
-                                moveQueue.add(new ElevatorEvent(dest, SimClock.getTime() + Math.abs(currentfloor-dest)*3+5*moveQueue.size()));
+                                moveQueue.add(new ElevatorEvent(currentfloor, dest, SimClock.getTime(), SimClock.getTime() + Math.abs(currentfloor-dest)*3+5*moveQueue.size()));
                                 System.out.println(" Time: " + SimClock.getTime() + " Elevator " + elevatorID + " finished loading " + 
                                 passengerDestinations[dest] + " passengers at floor " + currentfloor+ " to floor " + dest);
                             }
@@ -54,19 +59,21 @@ public class Elevator implements Runnable {
                         for (int dest=4; dest>=0; dest--) { // Going down
                             if (passengerDestinations[dest] > 0) {
                                 incPassengers(passengerDestinations[dest]);
-                                moveQueue.add(new ElevatorEvent(dest, SimClock.getTime() + Math.abs(currentfloor-dest)*3+5*moveQueue.size()));
+                                moveQueue.add(new ElevatorEvent(currentfloor, dest, SimClock.getTime(), SimClock.getTime() + Math.abs(currentfloor-dest)*3+5*moveQueue.size()));
                                 System.out.println(" Time: " + SimClock.getTime() + " Elevator " + elevatorID + " finished loading " + 
                                 passengerDestinations[dest] + " passengers at floor " + currentfloor+ " to floor " + dest);
                             }
                         }
                     }
                     moveQueue.remove(0);
+                    activeLeg = moveQueue.isEmpty() ? null : moveQueue.get(0);
                 }
             }
             if (numPassengers > 0 && !moveQueue.isEmpty()) { // Unloading passengers
                 ElevatorEvent event = moveQueue.get(0);
                 if (SimClock.getTime() == event.getExpectedArrival()) {
                     moveQueue.remove(0);
+                    activeLeg = moveQueue.isEmpty() ? null : moveQueue.get(0);
                     int arrivedPassengers = passengerDestinations[event.getDestination()];
                     manager.updateArrivedPassengers(event.getDestination(), currentfloor, arrivedPassengers);
                     decPassengers(arrivedPassengers);
@@ -125,5 +132,15 @@ public class Elevator implements Runnable {
     
     public int getUnloadedPassengersFloor(int floor) {
         return unloadedPassengers[floor];
+    }
+
+    // Get the elevator's current floor
+    public int getCurrentFloor() {
+        return currentfloor;
+    }
+
+    // Get the in-flight move event (origin/destination/departure/arrival), or null if idle
+    public ElevatorEvent getActiveLeg() {
+        return activeLeg;
     }
 }

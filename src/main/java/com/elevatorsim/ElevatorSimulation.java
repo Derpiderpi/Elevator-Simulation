@@ -1,3 +1,5 @@
+package com.elevatorsim;
+
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -13,7 +15,7 @@ public class ElevatorSimulation {
     private Thread elevator2;
     private Thread elevator3;
     private int totalSimTime;
-    private int rateOfSim;
+    private volatile int rateOfSim;
     ArrayList<ArrayList<PassengerArrival>> PassArrival;
     
     // Constructor
@@ -70,6 +72,21 @@ public class ElevatorSimulation {
             // TODO Auto-generated catch block
             e.printStackTrace();
         }
+    }
+
+    // Get the elevator instances, for read-only cross-thread polling by the GUI
+    public Elevator[] getElevators() {
+        return elevators;
+    }
+
+    // Get the building manager, for read-only cross-thread polling by the GUI
+    public BuildingManager getManager() {
+        return manager;
+    }
+
+    // Get the configured real-time milliseconds per simulated tick, or 0 before readFile() has run
+    public int getRateOfSimMs() {
+        return rateOfSim;
     }
 
     // Reads the ElevatorConfig.txt file and save it to PassengerArrival object

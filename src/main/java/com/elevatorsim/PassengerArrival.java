@@ -1,3 +1,5 @@
+package com.elevatorsim;
+
 public class PassengerArrival {
     private int numPassengers;
     private int destinationFloor;

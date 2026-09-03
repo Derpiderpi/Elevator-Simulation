@@ -1,8 +1,20 @@
 # ElevatorSimulation
 
 ## Introduction
-This project simulates the situation in a ten-story building with three elevators. The project is written in Java using knowledge focus on Multithreading.
+This project simulates the situation in a ten-story building with three elevators. The project is written in Java using knowledge focus on Multithreading. A JavaFX GUI is included that animates elevator movement in real time.
 
+## Build & Run
+
+The project is built with Maven (requires Java 21+). Place an `ElevatorConfig.txt` (see Input File below) in the directory you run these commands from.
+
+- Console mode (text trace only, same behavior as before the GUI was added):
+  ```
+  mvn exec:java -Dexec.mainClass=com.elevatorsim.Simulator
+  ```
+- GUI mode (animated building view):
+  ```
+  mvn javafx:run
+  ```
 
 ## Input File
 Setting should be provided seperately in a text file named "ElevatorConfig.txt", in the following format:
