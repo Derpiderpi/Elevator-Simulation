@@ -5,7 +5,7 @@ This project simulates the situation in a ten-story building with three elevator
 
 ## Build & Run
 
-The project is built with Maven and requires a JDK 21+ install on your `PATH`. Place an `ElevatorConfig.txt` (see Input File below) in the directory you run these commands from.
+The project is built with Maven and requires a JDK 21+ install on your `PATH`. A sample `ElevatorConfig.txt` (see Input File below) is included at the repo root, so the commands below work out of the box — replace it with your own to change the simulation's behavior. With the sample config (1000 simulated seconds at 100ms per tick), a full run takes about 100 real seconds, so give the GUI a little time after launch before expecting to see elevators moving.
 
 A Maven Wrapper is included, so you don't need Maven installed separately — use `./mvnw` (macOS/Linux) or `mvnw.cmd` (Windows) in place of `mvn` below. If you already have Maven installed, the plain `mvn` commands work the same way.
 
@@ -25,7 +25,7 @@ A Maven Wrapper is included, so you don't need Maven installed separately — us
   ```
 
 ## Input File
-Setting should be provided seperately in a text file named "ElevatorConfig.txt", in the following format:
+Settings are provided in a text file named "ElevatorConfig.txt" in the directory you run from (a sample is included at the repo root — replace it to customize the simulation), in the following format:
 
 - The 1st line represents the total time of the simulation (in number of simulated seconds).
 - The 2nd line represents the rate of each simulated seconds (in milliseconds)
