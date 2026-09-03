@@ -11,8 +11,8 @@ import javafx.stage.Stage;
 
 // JavaFX entry point. Owns the ElevatorSimulation's lifecycle (constructs it and runs it on a
 // background thread) and drives a single AnimationTimer that polls simulation state each frame
-// to animate elevator car positions, passenger circles, floor waiting-passenger circles, and
-// passenger-transfer (pickup/dropoff) animations.
+// to animate elevator car positions, passenger spheres, floor waiting-passenger spheres, and
+// passenger-transfer (pickup/dropoff) animations within BuildingView's 3D scene.
 public class ElevatorGuiApp extends Application {
 
     private final ElevatorSimulation simulation = new ElevatorSimulation();

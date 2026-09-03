@@ -1,7 +1,7 @@
 # ElevatorSimulation
 
 ## Introduction
-This project simulates the situation in a ten-story building with three elevators. The project is written in Java using knowledge focus on Multithreading. A JavaFX GUI is included that animates elevator movement in real time, showing each waiting or riding passenger as an individual circle and animating passengers as they transfer between a floor and an elevator on pickup/dropoff. Each passenger's circle is labeled with their destination floor and colored green or orange depending on whether they're heading up or down.
+This project simulates the situation in a ten-story building with three elevators. The project is written in Java using knowledge focus on Multithreading. A JavaFX GUI is included that renders the building as a 3D scene (drag to orbit the camera, scroll to zoom) and animates elevator movement in real time, showing each waiting or riding passenger as an individual sphere and animating passengers as they transfer between a floor and an elevator on pickup/dropoff. Each passenger's sphere is labeled with their destination floor and colored green or orange depending on whether they're heading up or down.
 
 ## Build & Run
 
