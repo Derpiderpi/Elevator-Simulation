@@ -11,15 +11,19 @@ The project is built with Maven. Source lives under `src/main/java/com/elevators
 
 ## Running
 
+Only a JDK (17+) is required — the repo includes the Maven Wrapper, so a separate Maven install isn't needed. Use `./mvnw` on macOS/Linux or `mvnw.cmd` on Windows in place of `mvn` below (a locally installed `mvn` works too, if you have one).
+
 **JavaFX animation** (floors, elevators, and passengers rendered and animated live):
 ```
-mvn clean javafx:run
+mvnw.cmd clean javafx:run        # Windows
+./mvnw clean javafx:run          # macOS/Linux
 ```
 Click "Start Simulation" in the window that opens.
 
 **Original console-only mode** (prints the same log lines as before, straight to stdout):
 ```
-mvn -q compile exec:java
+mvnw.cmd -q compile exec:java    # Windows
+./mvnw -q compile exec:java      # macOS/Linux
 ```
 
 Both modes read `ElevatorConfig.txt` from the current working directory (a sample is included at the project root).
