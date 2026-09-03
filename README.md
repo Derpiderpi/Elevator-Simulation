@@ -1,7 +1,7 @@
 # ElevatorSimulation
 
 ## Introduction
-This project simulates the situation in a ten-story building with three elevators. The project is written in Java using knowledge focus on Multithreading. A JavaFX GUI is included that animates elevator movement in real time.
+This project simulates the situation in a ten-story building with three elevators. The project is written in Java using knowledge focus on Multithreading. A JavaFX GUI is included that animates elevator movement in real time, showing each waiting or riding passenger as an individual circle and animating passengers as they transfer between a floor and an elevator on pickup/dropoff.
 
 ## Build & Run
 

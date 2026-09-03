@@ -14,6 +14,9 @@ public class Elevator implements Runnable {
     private int[] unloadedPassengers;
     // Read-only view of moveQueue's head for the GUI to poll cross-thread; reassigned wherever moveQueue's head changes
     private volatile ElevatorEvent activeLeg;
+    // Most recent pickup/dropoff event, for the GUI to detect and animate passenger transfers
+    private volatile PassengerTransfer lastPickup;
+    private volatile PassengerTransfer lastDropoff;
     
     // Constructor
     public Elevator(int elevatorID, BuildingManager manager) {
@@ -46,12 +49,14 @@ public class Elevator implements Runnable {
                 if (SimClock.getTime() == event.getExpectedArrival()) { // Check if the elevator arrive the destination floor
                     currentfloor = event.getDestination();
                     passengerDestinations = manager.pickUpPassengers(currentfloor);
+                    int pickedUpThisTick = 0;
                     if (manager.checkUpDown()) {
                         for (int dest=0; dest<passengerDestinations.length; dest++) { // Going up
                             if (passengerDestinations[dest] > 0) {
                                 incPassengers(passengerDestinations[dest]);
+                                pickedUpThisTick += passengerDestinations[dest];
                                 moveQueue.add(new ElevatorEvent(currentfloor, dest, SimClock.getTime(), SimClock.getTime() + Math.abs(currentfloor-dest)*3+5*moveQueue.size()));
-                                System.out.println(" Time: " + SimClock.getTime() + " Elevator " + elevatorID + " finished loading " + 
+                                System.out.println(" Time: " + SimClock.getTime() + " Elevator " + elevatorID + " finished loading " +
                                 passengerDestinations[dest] + " passengers at floor " + currentfloor+ " to floor " + dest);
                             }
                         }
@@ -59,11 +64,15 @@ public class Elevator implements Runnable {
                         for (int dest=4; dest>=0; dest--) { // Going down
                             if (passengerDestinations[dest] > 0) {
                                 incPassengers(passengerDestinations[dest]);
+                                pickedUpThisTick += passengerDestinations[dest];
                                 moveQueue.add(new ElevatorEvent(currentfloor, dest, SimClock.getTime(), SimClock.getTime() + Math.abs(currentfloor-dest)*3+5*moveQueue.size()));
-                                System.out.println(" Time: " + SimClock.getTime() + " Elevator " + elevatorID + " finished loading " + 
+                                System.out.println(" Time: " + SimClock.getTime() + " Elevator " + elevatorID + " finished loading " +
                                 passengerDestinations[dest] + " passengers at floor " + currentfloor+ " to floor " + dest);
                             }
                         }
+                    }
+                    if (pickedUpThisTick > 0) {
+                        lastPickup = new PassengerTransfer(currentfloor, pickedUpThisTick, SimClock.getTime());
                     }
                     moveQueue.remove(0);
                     activeLeg = moveQueue.isEmpty() ? null : moveQueue.get(0);
@@ -79,7 +88,10 @@ public class Elevator implements Runnable {
                     decPassengers(arrivedPassengers);
                     currentfloor = event.getDestination();
                     updateUnloadedPassengers(currentfloor, arrivedPassengers);
-                    System.out.println(" Time: " + SimClock.getTime() + " Elevator " + elevatorID + " finished unloading " + 
+                    if (arrivedPassengers > 0) {
+                        lastDropoff = new PassengerTransfer(currentfloor, arrivedPassengers, SimClock.getTime());
+                    }
+                    System.out.println(" Time: " + SimClock.getTime() + " Elevator " + elevatorID + " finished unloading " +
                     arrivedPassengers + " passengers at floor " + currentfloor);
                 }
             }
@@ -142,5 +154,15 @@ public class Elevator implements Runnable {
     // Get the in-flight move event (origin/destination/departure/arrival), or null if idle
     public ElevatorEvent getActiveLeg() {
         return activeLeg;
+    }
+
+    // Get the most recent pickup event, or null if none has happened yet
+    public PassengerTransfer getLastPickup() {
+        return lastPickup;
+    }
+
+    // Get the most recent dropoff event, or null if none has happened yet
+    public PassengerTransfer getLastDropoff() {
+        return lastDropoff;
     }
 }

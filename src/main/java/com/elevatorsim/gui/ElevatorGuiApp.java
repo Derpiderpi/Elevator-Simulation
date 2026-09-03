@@ -11,10 +11,12 @@ import javafx.stage.Stage;
 
 // JavaFX entry point. Owns the ElevatorSimulation's lifecycle (constructs it and runs it on a
 // background thread) and drives a single AnimationTimer that polls simulation state each frame
-// to animate elevator car positions, passenger counts, and floor call indicators.
+// to animate elevator car positions, passenger circles, floor waiting-passenger circles, and
+// passenger-transfer (pickup/dropoff) animations.
 public class ElevatorGuiApp extends Application {
 
     private final ElevatorSimulation simulation = new ElevatorSimulation();
+    private final PassengerTransitManager transitManager = new PassengerTransitManager(BuildingView.SHAFT_COUNT);
 
     // Tracks the wall-clock time of the last observed SimClock tick change, so the interpolator
     // is self-calibrating rather than relying on a fixed "simulation start" timestamp.
@@ -59,16 +61,24 @@ public class ElevatorGuiApp extends Application {
         Elevator[] elevators = simulation.getElevators();
         for (int i = 0; i < elevators.length; i++) {
             Elevator elevator = elevators[i];
+
+            transitManager.observePickup(i, elevator.getLastPickup(), nowMs);
+            transitManager.observeDropoff(i, elevator.getLastDropoff(), nowMs);
+
             ElevatorEvent activeLeg = elevator.getActiveLeg();
             double floorPosition = ElevatorInterpolator.computeFloorPosition(
                     activeLeg, elevator.getCurrentFloor(), currentTick, lastTickChangeMs, nowMs, rateOfSimMs);
-            buildingView.updateElevator(i, floorPosition, elevator.getCurrentPassengers());
+
+            int visibleRiding = Math.max(0, elevator.getCurrentPassengers() - transitManager.getPickupSuppression(i));
+            buildingView.updateElevator(i, floorPosition, visibleRiding);
         }
+        transitManager.tick(nowMs);
 
         for (int floor = 0; floor < BuildingView.FLOOR_COUNT; floor++) {
-            boolean pending = simulation.getManager().getCurrentRequest(floor) > 0;
-            buildingView.updateFloorCallState(floor, pending);
+            buildingView.updateFloorWaitingCount(floor, simulation.getManager().getCurrentRequest(floor));
         }
+
+        buildingView.updateTransits(transitManager.getActiveTransits(), nowMs);
     }
 
     public static void main(String[] args) {
