@@ -69,13 +69,18 @@ public class ElevatorGuiApp extends Application {
             double floorPosition = ElevatorInterpolator.computeFloorPosition(
                     activeLeg, elevator.getCurrentFloor(), currentTick, lastTickChangeMs, nowMs, rateOfSimMs);
 
-            int visibleRiding = Math.max(0, elevator.getCurrentPassengers() - transitManager.getPickupSuppression(i));
-            buildingView.updateElevator(i, floorPosition, visibleRiding);
+            int[] ridingCounts = elevator.getRidingDestinationCounts();
+            int[] suppression = transitManager.getPickupSuppression(i);
+            int[] visibleRidingByDest = new int[10];
+            for (int d = 0; d < 10; d++) {
+                visibleRidingByDest[d] = Math.max(0, ridingCounts[d] - suppression[d]);
+            }
+            buildingView.updateElevator(i, floorPosition, visibleRidingByDest, elevator.getRidingOriginFloor());
         }
         transitManager.tick(nowMs);
 
         for (int floor = 0; floor < BuildingView.FLOOR_COUNT; floor++) {
-            buildingView.updateFloorWaitingCount(floor, simulation.getManager().getCurrentRequest(floor));
+            buildingView.updateFloorWaiting(floor, simulation.getManager().getPassengerRequestsByDestination(floor));
         }
 
         buildingView.updateTransits(transitManager.getActiveTransits(), nowMs);

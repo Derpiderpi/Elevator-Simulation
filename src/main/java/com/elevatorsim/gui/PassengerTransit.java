@@ -18,14 +18,16 @@ public final class PassengerTransit {
     private final Kind kind;
     private final int shaftIndex;
     private final int floor;
-    private final int count;
+    private final int originFloor;
+    private final int[] countsByDestination;
     private final long startMs;
 
-    public PassengerTransit(Kind kind, int shaftIndex, int floor, int count, long startMs) {
+    public PassengerTransit(Kind kind, int shaftIndex, int floor, int originFloor, int[] countsByDestination, long startMs) {
         this.kind = kind;
         this.shaftIndex = shaftIndex;
         this.floor = floor;
-        this.count = count;
+        this.originFloor = originFloor;
+        this.countsByDestination = countsByDestination.clone();
         this.startMs = startMs;
     }
 
@@ -41,8 +43,20 @@ public final class PassengerTransit {
         return floor;
     }
 
+    public int getOriginFloor() {
+        return originFloor;
+    }
+
+    public int[] getCountsByDestination() {
+        return countsByDestination.clone();
+    }
+
     public int getCount() {
-        return count;
+        int sum = 0;
+        for (int c : countsByDestination) {
+            sum += c;
+        }
+        return sum;
     }
 
     // Clamped [0,1] progress through the transfer, mirroring ElevatorInterpolator's clamp style.

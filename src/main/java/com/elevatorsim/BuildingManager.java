@@ -33,6 +33,15 @@ public class BuildingManager {
     public synchronized int getPassengerRequest(int start, int dest) {
         return floors[start].getPassengerRequests(dest);
     }
+
+    // Get a floor's pending pickup request count broken down by destination floor (index = destination)
+    public synchronized int[] getPassengerRequestsByDestination(int floor) {
+        int[] counts = new int[10];
+        for (int dest = 0; dest < 10; dest++) {
+            counts[dest] = floors[floor].getPassengerRequests(dest);
+        }
+        return counts;
+    }
     
     // Getter method for approaching elevator
     public synchronized int getApproachingElevator(int floor) {

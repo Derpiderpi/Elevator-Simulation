@@ -9,9 +9,10 @@ import javafx.scene.shape.Line;
 import javafx.scene.text.Text;
 
 // Renders the building's 10 floors and 3 elevator shafts, one circle per waiting passenger
-// per floor, and hosts one ElevatorCarView per shaft. Layout is computed once in the
-// constructor for the persistent floor/car nodes; per-frame updates toggle their visibility
-// and rebuild the short-lived passenger-transfer animation layer on top.
+// per floor (labeled with their destination floor and colored by travel direction), and
+// hosts one ElevatorCarView per shaft. Layout is computed once in the constructor for the
+// persistent floor/car nodes; per-frame updates toggle their visibility and rebuild the
+// short-lived passenger-transfer animation layer on top.
 public class BuildingView extends Pane {
 
     public static final int FLOOR_COUNT = 10;
@@ -23,23 +24,29 @@ public class BuildingView extends Pane {
     public static final double CAR_WIDTH = 96;
     public static final double CAR_HEIGHT = 36;
 
+    // Direction-based passenger circle colors, and the digit-label color that reads
+    // clearly against both (see design.md for the contrast/consistency rationale).
+    public static final String UP_COLOR = "#22C55E";
+    public static final String DOWN_COLOR = "#F97316";
+    public static final String PASSENGER_LABEL_COLOR = "#1F2937";
+
     private static final int MAX_WAITING_DISPLAY = 12;
     private static final int WAITING_GRID_COLUMNS = 6;
-    private static final double WAITING_CIRCLE_RADIUS = 4;
-    private static final double WAITING_GRID_SPACING = 11;
-    private static final double WAITING_GRID_X0 = 70;
+    private static final double WAITING_CIRCLE_RADIUS = 6;
+    private static final double WAITING_GRID_SPACING = 14;
+    private static final double WAITING_GRID_X0 = 68;
     private static final double WAITING_AREA_CENTER_X =
             WAITING_GRID_X0 + (WAITING_GRID_COLUMNS - 1) * WAITING_GRID_SPACING / 2.0;
 
-    private static final double TRANSIT_CIRCLE_RADIUS = 4;
+    private static final double TRANSIT_CIRCLE_RADIUS = 6;
     private static final int TRANSIT_FAN_COLUMNS = 6;
-    private static final double TRANSIT_FAN_SPACING = 9;
+    private static final double TRANSIT_FAN_SPACING = 14;
 
     private static final String[] CAR_COLORS = {"#3B82F6", "#EF4444", "#10B981"};
-    private static final String WAITING_CIRCLE_COLOR = "#F59E0B";
 
     private final ElevatorCarView[] carViews = new ElevatorCarView[SHAFT_COUNT];
     private final Circle[][] waitingCircles = new Circle[FLOOR_COUNT][MAX_WAITING_DISPLAY];
+    private final Text[][] waitingLabels = new Text[FLOOR_COUNT][MAX_WAITING_DISPLAY];
     private final Group transitLayer = new Group();
 
     public BuildingView() {
@@ -63,10 +70,16 @@ public class BuildingView extends Pane {
             for (int i = 0; i < MAX_WAITING_DISPLAY; i++) {
                 double cx = WAITING_GRID_X0 + (i % WAITING_GRID_COLUMNS) * WAITING_GRID_SPACING;
                 double cy = gridY0 + (i / WAITING_GRID_COLUMNS) * WAITING_GRID_SPACING;
-                Circle circle = new Circle(cx, cy, WAITING_CIRCLE_RADIUS, Color.web(WAITING_CIRCLE_COLOR));
+                Circle circle = new Circle(cx, cy, WAITING_CIRCLE_RADIUS);
                 circle.setVisible(false);
                 waitingCircles[floor][i] = circle;
                 getChildren().add(circle);
+
+                Text digit = PassengerLabel.create();
+                PassengerLabel.position(digit, cx, cy);
+                digit.setVisible(false);
+                waitingLabels[floor][i] = digit;
+                getChildren().add(digit);
             }
         }
 
@@ -92,15 +105,27 @@ public class BuildingView extends Pane {
         getChildren().add(transitLayer);
     }
 
-    public void updateElevator(int shaftIndex, double floorPosition, int passengerCount) {
+    public void updateElevator(int shaftIndex, double floorPosition, int[] ridingCountsByDestination, int ridingOriginFloor) {
         carViews[shaftIndex].updatePosition(floorPosition);
-        carViews[shaftIndex].updateRidingCount(passengerCount);
+        carViews[shaftIndex].updateRidingCounts(ridingCountsByDestination, ridingOriginFloor);
     }
 
-    public void updateFloorWaitingCount(int floor, int waitingCount) {
+    public void updateFloorWaiting(int floor, int[] countsByDestination) {
         Circle[] circles = waitingCircles[floor];
-        for (int i = 0; i < circles.length; i++) {
-            circles[i].setVisible(i < waitingCount);
+        Text[] labels = waitingLabels[floor];
+        int slot = 0;
+        for (int dest = 0; dest < FLOOR_COUNT && slot < MAX_WAITING_DISPLAY; dest++) {
+            String color = dest > floor ? UP_COLOR : DOWN_COLOR;
+            for (int n = 0; n < countsByDestination[dest] && slot < MAX_WAITING_DISPLAY; n++, slot++) {
+                circles[slot].setFill(Color.web(color));
+                circles[slot].setVisible(true);
+                labels[slot].setText(Integer.toString(dest));
+                labels[slot].setVisible(true);
+            }
+        }
+        for (; slot < MAX_WAITING_DISPLAY; slot++) {
+            circles[slot].setVisible(false);
+            labels[slot].setVisible(false);
         }
     }
 
@@ -118,13 +143,25 @@ public class BuildingView extends Pane {
             double toX = transit.getKind() == PassengerTransit.Kind.PICKUP ? shaftCenterX : WAITING_AREA_CENTER_X;
             double centerX = fromX + (toX - fromX) * progress;
 
-            String color = CAR_COLORS[transit.getShaftIndex() % CAR_COLORS.length];
-            int renderedCount = Math.min(transit.getCount(), MAX_WAITING_DISPLAY);
-            for (int i = 0; i < renderedCount; i++) {
-                double offsetX = (i % TRANSIT_FAN_COLUMNS - (TRANSIT_FAN_COLUMNS - 1) / 2.0) * TRANSIT_FAN_SPACING;
-                double offsetY = (i / TRANSIT_FAN_COLUMNS) * TRANSIT_FAN_SPACING;
-                Circle circle = new Circle(centerX + offsetX, floorCenterY + offsetY, TRANSIT_CIRCLE_RADIUS, Color.web(color));
-                transitLayer.getChildren().add(circle);
+            int[] counts = transit.getCountsByDestination();
+            int originFloor = transit.getOriginFloor();
+            int slot = 0;
+            for (int dest = 0; dest < FLOOR_COUNT && slot < MAX_WAITING_DISPLAY; dest++) {
+                String color = dest > originFloor ? UP_COLOR : DOWN_COLOR;
+                for (int n = 0; n < counts[dest] && slot < MAX_WAITING_DISPLAY; n++, slot++) {
+                    double offsetX = (slot % TRANSIT_FAN_COLUMNS - (TRANSIT_FAN_COLUMNS - 1) / 2.0) * TRANSIT_FAN_SPACING;
+                    double offsetY = (slot / TRANSIT_FAN_COLUMNS) * TRANSIT_FAN_SPACING;
+                    double cx = centerX + offsetX;
+                    double cy = floorCenterY + offsetY;
+
+                    Circle circle = new Circle(cx, cy, TRANSIT_CIRCLE_RADIUS, Color.web(color));
+                    transitLayer.getChildren().add(circle);
+
+                    Text digit = PassengerLabel.create();
+                    PassengerLabel.position(digit, cx, cy);
+                    digit.setText(Integer.toString(dest));
+                    transitLayer.getChildren().add(digit);
+                }
             }
         }
     }
